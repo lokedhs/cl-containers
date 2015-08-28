@@ -107,6 +107,85 @@
       (ensure-same (size c) 0)
       (ensure-null (collect-elements c)))))
 
+(defparameter *rbtree-special-test-data*
+  '((:INSERT (720255619831889/500000 . 1))
+    (:INSERT (180063904958453/125000 . 101))
+    (:INSERT (1440511239667639/1000000 . 102))
+    (:INSERT (720255619833821/500000 . 103))
+    (:INSERT (1440511239667643/1000000 . 104))
+    (:INSERT (360127809916911/250000 . 105))
+    (:INSERT (720255619833823/500000 . 106))
+    (:INSERT (1440511239667647/1000000 . 107))
+    (:INSERT (22507988119807/15625 . 108))
+    (:INSERT (1440511239667649/1000000 . 109))
+    (:REMOVE (720255619831889/500000 . 1))
+    (:INSERT (720255619833833/500000 . 110))
+    (:REMOVE (180063904958453/125000 . 101))
+    (:INSERT (180063904958459/125000 . 111))
+    (:REMOVE (1440511239667639/1000000 . 102))
+    (:INSERT (720255619833837/500000 . 112))
+    (:REMOVE (720255619833821/500000 . 103))
+    (:INSERT (360127809916919/250000 . 113))
+    (:REMOVE (1440511239667643/1000000 . 104))
+    (:INSERT (1440511239667677/1000000 . 114))
+    (:REMOVE (360127809916911/250000 . 105))
+    (:INSERT (1440511239667679/1000000 . 115))
+    (:REMOVE (720255619833823/500000 . 106))
+    (:INSERT (9003195247923/6250 . 116))
+    (:REMOVE (1440511239667647/1000000 . 107))
+    (:INSERT (720255619833841/500000 . 117))
+    (:REMOVE (22507988119807/15625 . 108))
+    (:INSERT (1440511239667683/1000000 . 118))
+    (:REMOVE (1440511239667649/1000000 . 109))
+    (:INSERT (288102247933537/200000 . 119))
+    (:INSERT (90031952478987/62500 . 2))
+    (:INSERT (720255619835067/500000 . 120))
+    (:INSERT (720255619835069/500000 . 121))
+    (:INSERT (720255619835071/500000 . 122))
+    (:INSERT (22507988119846/15625 . 123))
+    (:INSERT (288102247934029/200000 . 124))
+    (:INSERT (720255619835073/500000 . 125))
+    (:INSERT (1440511239670147/1000000 . 126))
+    (:INSERT (360127809917537/250000 . 127))
+    (:INSERT (28810224793403/20000 . 128))
+    (:REMOVE (90031952478987/62500 . 2))
+    (:INSERT (180063904958769/125000 . 129))
+    (:REMOVE (720255619835067/500000 . 120))
+    (:INSERT (1440511239670153/1000000 . 130))
+    (:REMOVE (720255619835069/500000 . 121))
+    (:INSERT (288102247934031/200000 . 131))
+    (:REMOVE (720255619835071/500000 . 122))))
+
+(defun value< (v1 v2)
+  (cond ((= (car v1) (car v2))
+         (< (cdr v1) (cdr v2)))
+        (t
+         (< (car v1) (car v2)))))
+
+(defun value= (v1 v2)
+  (and (= (car v1) (car v2))
+       (= (cdr v1) (cdr v2))))
+
+(addtest (test-trees)
+  test-rbtrees
+  (let ((q (make-instance 'cl-containers:red-black-tree
+                          :key #'identity
+                          :sorter #'value<
+                          :test #'value=)))
+    (loop
+       with expected-size = 0
+       for i from 1
+       for (cmd value) in *rbtree-special-test-data*
+       do (ensure (= expected-size (cl-containers:size q)))
+       do (ecase cmd
+            (:insert (progn
+                       (cl-containers:insert-item q value)
+                       (incf expected-size)))
+            (:remove (let ((result (cl-containers:delete-item q value)))
+                       (ensure (value= value (cl-containers:element result)))
+                       (decf expected-size))))
+       finally (ensure (= expected-size (cl-containers:size q))))))
+
 #|
 (setf c (make-instance 'red-black-tree))
 (insert-item c 1)
